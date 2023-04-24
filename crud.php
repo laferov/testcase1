@@ -9,21 +9,25 @@ if (!Auth::checkauth()) {
 
 class CRUD {
 
-    public static function delete($id) {
-        require $_SERVER['DOCUMENT_ROOT'].'/config.php';
+    private $conn;
+    public function __construct() {
+        require 'config.php';
+        $this->pdo = new PDO ("mysql:host=$dbhost;dbname=$dbname",$dbuser,$dbpass);
+        $this->pdo->query("SET NAMES utf8");
+    }
+
+    public function delete($id) {
         $id = intval($id);
         $sql = "DELETE FROM `orders` WHERE `id` = ?";
 
-        $sth = $pdo->prepare($sql);
+        $sth = $this->pdo->prepare($sql);
         $sth->bindParam(1,$id,PDO::PARAM_INT);
         $sth->execute();
         header("Location: /orders.php");         
     }
 
-    public static function create($post) {
-
-        require $_SERVER['DOCUMENT_ROOT'].'/config.php';
-        
+    public function create($post) {
+       
         $sql = "INSERT INTO `orders`(`product`,`price`,`amount`,`total_price`,`status`) VALUES (?,?,?,?,?)";
         
         $product = $_POST['product'];
@@ -32,7 +36,7 @@ class CRUD {
         $total_price = floatval($price) * floatval($amount);
         $status = $_POST['status'];
 
-        $sth = $pdo->prepare($sql);
+        $sth = $this->pdo->prepare($sql);
         $sth->bindParam(1,$product,PDO::PARAM_STR);
         $sth->bindParam(2,$price,PDO::PARAM_STR);
         $sth->bindParam(3,$amount,PDO::PARAM_STR);
@@ -42,9 +46,7 @@ class CRUD {
         header("Location: /orders.php"); 
     }
 
-    public static function update($post) {
-    
-        require $_SERVER['DOCUMENT_ROOT'].'/config.php';
+    public function update($post) {
         $sql = "UPDATE `orders` SET `product`= ?,`price`= ?,`amount`= ?,`total_price`= ?,`status`= ? WHERE `id`= ?";
         $product = $_POST['product'];
         $price = $_POST['price'];
@@ -52,7 +54,7 @@ class CRUD {
         $total_price = floatval($price) * floatval($amount);
         $status = $_POST['status'];
         $id = $_POST['id'];
-        $sth = $pdo->prepare($sql);
+        $sth = $this->pdo->prepare($sql);
         $sth->bindParam(1,$product,PDO::PARAM_STR);
         $sth->bindParam(2,$price,PDO::PARAM_STR);
         $sth->bindParam(3,$amount,PDO::PARAM_STR);
@@ -64,15 +66,12 @@ class CRUD {
 
     }
 
-    public static function read() 
+    public function read() 
     {
         
-        require $_SERVER['DOCUMENT_ROOT'].'/config.php';
-
         $sql = "SELECT * FROM orders";
 
-
-        $sth = $pdo->prepare($sql);
+        $sth = $this->pdo->prepare($sql);
         $sth->execute();
 
         $orders = $sth->fetchall(PDO::FETCH_ASSOC);
@@ -83,16 +82,17 @@ class CRUD {
     
 }
 
+$crud = new CRUD();
 
     if (isset($_GET['delete']) && $_GET['delete'] == '1') {
-        CRUD::delete($_GET['id']);
+        $crud->delete($_GET['id']);
     }
 
     if (isset($_POST['action'])) {
         if ($_POST['action'] == 'create') {
-            CRUD::create($_POST);
+            $crud->create($_POST);
         }
         if ($_POST['action'] == 'update') {
-            CRUD::update($_POST);
+            $crud->update($_POST);
         }
     }

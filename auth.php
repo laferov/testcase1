@@ -1,7 +1,16 @@
 <?php 
 class Auth {
+    private $conn;
+    public function __construct() {
+        require_once 'config.php';
+        $this->pdo = new PDO ("mysql:host=$dbhost;dbname=$dbname",$dbuser,$dbpass);
+        $this->pdo->query("SET NAMES utf8");
+    }
+
     public static function checkauth() {
-        require $_SERVER['DOCUMENT_ROOT'].'/config.php';
+        require 'config.php';
+        $pdo = new PDO ("mysql:host=$dbhost;dbname=$dbname",$dbuser,$dbpass);
+        $pdo->query("SET NAMES utf8");
         if (isset($_COOKIE['Auth'])) {
             require_once $_SERVER['DOCUMENT_ROOT'].'/config.php';
             $password = $_COOKIE['Auth'];
@@ -22,12 +31,11 @@ class Auth {
         }
         
     } 
-    public static function signin($email,$password) {
-        require_once $_SERVER['DOCUMENT_ROOT'].'/config.php';
+    public function signin($email,$password) {
         $email = strtolower($email);
         $sql = "SELECT `login`,`password` FROM `users` WHERE `email` = ?";
 
-        $sth = $pdo->prepare($sql);
+        $sth = $this->pdo->prepare($sql);
         $sth->bindParam(1,$email,PDO::PARAM_STR);
         $sth->execute();
         $sql_resp = ($sth->fetch(PDO::FETCH_ASSOC));
@@ -45,21 +53,18 @@ class Auth {
     }
 
 
-    public static function register($reg_values) {
-        var_dump($reg_values);
+    public function register($reg_values) {
         $login = $reg_values['login'];
         $password = $reg_values['password'];
         $email = $reg_values['email'];
-        require_once $_SERVER['DOCUMENT_ROOT'].'config.php';
-
         $sql = "SELECT * FROM `users` WHERE `login` = ?";
 
-        $sth = $pdo->prepare($sql);
+        $sth = $this->pdo->prepare($sql);
         $sth->bindParam(1,$login,PDO::PARAM_STR);
         $sth->execute();
 
         $sql = "INSERT INTO `users`(`login`, `password`,`email`,`created_at`) VALUES (?,?,?,NOW())";
-            $sth = $pdo->prepare($sql);
+            $sth = $this->pdo->prepare($sql);
             $password = password_hash($password, PASSWORD_DEFAULT);
             $sth->bindParam(1,$login,PDO::PARAM_STR);
             $sth->bindParam(2,$password,PDO::PARAM_STR);
@@ -71,9 +76,24 @@ class Auth {
 }
 
 
+// if (isset($_POST['email'])) {
+//     if (isset($_POST['login'])) {
+//         Auth::register($_POST);   
+//     } else Auth::signin($_POST['email'],$_POST['password']);   
+// }
+
+$auth = new Auth();
+
 if (isset($_POST['email'])) {
     if (isset($_POST['login'])) {
-        Auth::register($_POST);   
-    } else Auth::signin($_POST['email'],$_POST['password']);   
+        $auth->register($_POST);   
+    } else $auth->signin($_POST['email'],$_POST['password']);   
 }
 
+
+
+
+
+#$auth->signin('abc@abc.ru','abc@abc.ru');
+
+#var_dump(Auth::checkauth());

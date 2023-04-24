@@ -49,7 +49,9 @@ if (!Auth::checkauth()) {
 
 require_once 'crud.php';
 
-$orders = CRUD::read();
+
+$crud = new CRUD();
+$orders = $crud->read();
 
 
 

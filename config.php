@@ -6,4 +6,3 @@ $dbpass = 'password';
 
 $pdo = new PDO ("mysql:host=$dbhost;dbname=$dbname",$dbuser,$dbpass);
 $pdo->query("SET NAMES utf8");
-
